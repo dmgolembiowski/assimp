@@ -1188,9 +1188,11 @@ inline void Node::Read(Value &obj, Asset &r) {
         }
     }
 
+    // Do not retrieve a skin here, just take a reference, to avoid infinite recursion
+    // Skins will be properly loaded later
     Value *curSkin = FindUInt(obj, "skin");
     if (nullptr != curSkin) {
-        this->skin = r.skins.Retrieve(curSkin->GetUint());
+        this->skin = r.skins.Get(curSkin->GetUint());
     }
 
     Value *curCamera = FindUInt(obj, "camera");
@@ -1337,6 +1339,7 @@ inline void AssetMetadata::Read(Document &doc) {
 //
 
 inline void Asset::ReadBinaryHeader(IOStream &stream, std::vector<char> &sceneData) {
+    ASSIMP_LOG_DEBUG("Reading GLTF2 binary");
     GLB_Header header;
     if (stream.Read(&header, sizeof(header), 1) != 1) {
         throw DeadlyImportError("GLTF: Unable to read the file header");
@@ -1400,6 +1403,7 @@ inline void Asset::ReadBinaryHeader(IOStream &stream, std::vector<char> &sceneDa
 }
 
 inline void Asset::Load(const std::string &pFile, bool isBinary) {
+    ASSIMP_LOG_DEBUG("Loading GLTF2 asset");
     mCurrentAssetDir.clear();
     /*int pos = std::max(int(pFile.rfind('/')), int(pFile.rfind('\\')));
     if (pos != int(std::string::npos)) */
@@ -1431,7 +1435,7 @@ inline void Asset::Load(const std::string &pFile, bool isBinary) {
     }
 
     // parse the JSON document
-
+    ASSIMP_LOG_DEBUG("Parsing GLTF2 JSON");
     Document doc;
     doc.ParseInsitu(&sceneData[0]);
 
@@ -1481,7 +1485,7 @@ inline void Asset::Load(const std::string &pFile, bool isBinary) {
         }
     }
 
-    // Force reading of skins since they're not always directly referenced
+    // Read skins after nodes have been loaded to avoid infinite recursion
     if (Value *skinsArray = FindArray(doc, "skins")) {
         for (unsigned int i = 0; i < skinsArray->Size(); ++i) {
             skins.Retrieve(i);

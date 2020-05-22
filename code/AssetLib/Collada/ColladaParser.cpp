@@ -284,7 +284,7 @@ void ColladaParser::ReadContents() {
 
                 ReadStructure();
             } else {
-                ASSIMP_LOG_DEBUG_F("Ignoring global element <", mReader->getNodeName(), ">.");
+                ASSIMP_LOG_VERBOSE_DEBUG_F("Ignoring global element <", mReader->getNodeName(), ">.");
                 SkipElement();
             }
         } else {
@@ -2479,7 +2479,7 @@ void ColladaParser::ReadSceneLibrary() {
 
                 // read name if given.
                 int indexName = TestAttribute("name");
-                const char *attrName = "unnamed";
+                const char *attrName = "Scene";
                 if (indexName > -1)
                     attrName = mReader->getAttributeValue(indexName);
 
